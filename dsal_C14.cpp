@@ -1,51 +1,69 @@
-#include <iostream>
-#include <vector>
-#include <map>
-#include <queue>
-#include <unordered_set>
-
+#include<iostream>
+#include<string>
+#include<unordered_map>
+#include<queue>
 using namespace std;
 
-// Function to perform Breadth First Search (BFS) to check connectivity
-bool isConnected(map<string, vector<pair<string, int>>>& graph, const string& start) {
-    unordered_set<string> visited;
-    queue<string> q;
-    q.push(start);
-    visited.insert(start);
+struct edge{
+    string destination;
+    int cost;
 
-    while (!q.empty()) {
-        string current = q.front();
-        q.pop();
-
-        for (const auto& neighbor : graph[current]) {
-            if (visited.find(neighbor.first) == visited.end()) {
-                q.push(neighbor.first);
-                visited.insert(neighbor.first);
-            }
-        }
+    edge(string dest, int c){
+        destination = dest;
+        cost = c;
     }
+};
 
-    return visited.size() == graph.size();
-}
+class graph{
+    private:
+        unordered_map<string, vector<edge>> adjlist;
+    public:
+        void addedge(string src, string dest, int cost){
+            adjlist[src].push_back(edge(dest, cost));
+            adjlist[dest].push_back(edge(src, cost));
+        }
+
+        bool isconnected(){
+            unordered_map<string, bool> visited;
+            queue<string> q;
+            string sv = adjlist.begin()->first;
+            q.push(sv);
+            visited[sv] = true;
+
+            while(!q.empty()){
+                string curr = q.front();
+                q.pop();
+
+                for(auto i: adjlist[curr]){
+                    if(!visited[i.destination]){
+                        q.push(i.destination);
+                        visited[i.destination] = true;
+                    }
+                }
+            }
+
+            for(auto i: visited){
+                if(!i.second){
+                    return false;
+                }
+            }
+            return true;
+        }
+};
 
 int main() {
-    // Representation of flight paths using adjacency list
-    map<string, vector<pair<string, int>>> flightGraph;
+    graph flightGraph;
 
-    // Adding flight paths
-    flightGraph["City A"] = {{"City B", 1}, {"City C", 2}};
-    flightGraph["City B"] = {{"City A", 1}, {"City C", 3}};
-    flightGraph["City C"] = {{"City A", 2}, {"City B", 3}};
+    // Adding edges to represent flight paths with costs
+    flightGraph.addedge("A", "B", 1); // A to B takes 1 hour
+    flightGraph.addedge("A", "C", 2); // A to C takes 2 hours
+    flightGraph.addedge("B", "C", 3); // B to C takes 3 hours
 
-    // Check connectivity
-    string startCity = flightGraph.begin()->first;
-    bool connected = isConnected(flightGraph, startCity);
-
-    // Print result
-    if (connected) {
-        cout << "The graph representing the flight paths is connected." << endl;
+    // Check if the graph is connected
+    if (flightGraph.isconnected()) {
+        cout << "The flight graph is connected." << endl;
     } else {
-        cout << "The graph representing the flight paths is not connected." << endl;
+        cout << "The flight graph is not connected." << endl;
     }
 
     return 0;
